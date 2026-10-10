@@ -53,6 +53,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Ensure DB connection is established for all incoming requests (Serverless & Server)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (error) {
+    console.error('Error connecting to DB in request middleware:', error.message);
+  }
+  next();
+});
+
 // Rate limiting for authentication routes to prevent brute-force attacks
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -105,12 +115,6 @@ app.use((err, req, res, next) => {
     error: isProd && statusCode === 500 ? 'Internal Server Error' : err.message || 'Internal Server Error',
     status: statusCode,
   });
-});
-
-// Middleware to ensure DB connection on serverless requests
-app.use(async (req, res, next) => {
-  await connectDB();
-  next();
 });
 
 // Connect to MongoDB and start Express server if running standalone
