@@ -1,7 +1,8 @@
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import { connectDB, getDBHealthStatus } from '../config/db.js';
+import { User } from '../models/User.js';
 import { Customer } from '../models/Customer.js';
 import { Task } from '../models/Task.js';
 
@@ -9,57 +10,68 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-async function runVerification() {
-  console.log('--- ConnectDesk Database Verification Script ---');
-  console.log(`Target MONGODB_URI: ${process.env.MONGODB_URI ? process.env.MONGODB_URI : '[Missing]'}`);
-
-  const connected = await connectDB();
-  const status = getDBHealthStatus();
-  console.log(`Database Health Status:`, JSON.stringify(status, null, 2));
-
-  if (!connected) {
-    console.error('❌ Connection verification FAILED. Could not establish MongoDB connection.');
-    process.exit(1);
-  }
+async function verifyAtlas() {
+  console.log('=== VERIFYING MONGODB ATLAS CONNECTION ===');
+  const uri = process.env.MONGODB_URI;
+  console.log('Connecting to URI:', uri ? uri.replace(/:([^@]+)@/, ':****@') : 'MISSING');
 
   try {
-    console.log('\n--- 1. Testing Customer Model Creation ---');
-    const testCust = await Customer.create({
-      name: 'Verification Test User',
-      company: 'Test Cybernetics',
-      email: `test.${Date.now()}@testcyber.com`,
-      phone: '+1 (555) 999-8888',
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    console.log('✅ Connected to MongoDB Atlas successfully!');
+    console.log(`Database Host: ${mongoose.connection.host}`);
+    console.log(`Database Name: ${mongoose.connection.name}`);
+
+    // 1. User creation test
+    const testEmail = `atlas.test.${Date.now()}@connectdesk.io`;
+    const user = await User.create({
+      name: 'Atlas Verified Admin',
+      email: testEmail,
+      password: 'SecureAtlasPassword123!'
+    });
+    console.log(`✅ [User Model] Created User in Atlas: ${user._id} (${user.email})`);
+
+    // 2. Customer creation test
+    const customer = await Customer.create({
+      user: user._id,
+      name: 'Atlas Client Corp',
+      company: 'Atlas Cyber Tech',
+      email: `client.${Date.now()}@atlascyber.com`,
+      phone: '+1 800 555 0199',
       status: 'Proposal',
-      dealValue: 50000,
-      notes: 'Automated verification test customer document'
+      dealValue: 125000,
+      notes: 'MongoDB Atlas live database connectivity test document'
     });
-    console.log(`✅ Created Customer: ID ${testCust._id} | Name: ${testCust.name} | Company: ${testCust.company}`);
+    console.log(`✅ [Customer Model] Created Customer in Atlas: ${customer._id} (${customer.company})`);
 
-    console.log('\n--- 2. Testing Task Model Creation with Ref ---');
-    const testTask = await Task.create({
-      title: 'Verification task for test customer',
-      customer: testCust._id,
+    // 3. Task creation test
+    const task = await Task.create({
+      user: user._id,
+      title: 'Setup MongoDB Atlas Production Cluster',
+      customer: customer._id,
       priority: 'High',
-      category: 'System Test',
-      status: 'Pending'
+      category: 'Infrastructure',
+      status: 'Completed'
     });
-    console.log(`✅ Created Task: ID ${testTask._id} | Title: ${testTask.title} | Ref Customer: ${testTask.customer}`);
+    console.log(`✅ [Task Model] Created Task in Atlas: ${task._id} (${task.title})`);
 
-    console.log('\n--- 3. Testing Population Query ---');
-    const populatedTask = await Task.findById(testTask._id).populate('customer');
-    console.log(`✅ Populated Task query successful! Linked Customer Company: ${populatedTask.customer.company}`);
+    // 4. Populate Query test
+    const populated = await Task.findById(task._id).populate('customer').populate('user');
+    console.log(`✅ [Populate Query] Verified relations in Atlas: Task linked to Customer "${populated.customer.company}" by User "${populated.user.name}"`);
 
-    console.log('\n--- 4. Cleaning Up Test Data ---');
-    await Task.findByIdAndDelete(testTask._id);
-    await Customer.findByIdAndDelete(testCust._id);
-    console.log('✅ Cleaned up verification test documents.');
+    // 5. Cleanup test data
+    await Task.findByIdAndDelete(task._id);
+    await Customer.findByIdAndDelete(customer._id);
+    await User.findByIdAndDelete(user._id);
+    console.log('✅ [Cleanup] Successfully removed test data from Atlas cluster');
 
-    console.log('\n🎉 ALL MONGODB VERIFICATION TESTS PASSED SUCCESSFULLY!');
+    console.log('\n======================================================');
+    console.log('🎉 MONGODB ATLAS IS FULLY CONNECTED AND OPERATIONAL!');
+    console.log('======================================================');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Model verification FAILED with error:', error);
+    console.error('❌ MONGODB ATLAS VERIFICATION FAILED:', error);
     process.exit(1);
   }
 }
 
-runVerification();
+verifyAtlas();
