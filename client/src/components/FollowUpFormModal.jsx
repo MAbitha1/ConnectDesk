@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, PhoneCall, Mail, Users, FileText, CheckCircle } from 'lucide-react';
+import { getApiUrl } from '../config/api';
 
 export default function FollowUpFormModal({ isOpen, onClose, onSave, followUpToEdit }) {
   const [customers, setCustomers] = useState([]);
@@ -43,7 +44,7 @@ export default function FollowUpFormModal({ isOpen, onClose, onSave, followUpToE
     setLoadingCustomers(true);
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const res = await fetch('/api/customers?limit=100', {
+      const res = await fetch(getApiUrl('/api/customers?limit=100'), {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       const json = await res.json();

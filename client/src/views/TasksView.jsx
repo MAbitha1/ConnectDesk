@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import TaskFormModal from '../components/TaskFormModal';
 import DeleteTaskConfirmationModal from '../components/DeleteTaskConfirmationModal';
+import { getApiUrl } from '../config/api';
 
 export default function TasksView({ showToast, onCountsChange }) {
   // Data & Pagination State
@@ -57,7 +58,7 @@ export default function TasksView({ showToast, onCountsChange }) {
         priority: selectedPriority
       });
 
-      const response = await fetch(`/api/tasks?${params.toString()}`, {
+      const response = await fetch(getApiUrl(`/api/tasks?${params.toString()}`), {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
 
@@ -111,7 +112,7 @@ export default function TasksView({ showToast, onCountsChange }) {
     const nextStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const response = await fetch(`/api/tasks/${task._id}`, {
+      const response = await fetch(getApiUrl(`/api/tasks/${task._id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +163,7 @@ export default function TasksView({ showToast, onCountsChange }) {
     try {
       const token = localStorage.getItem('connectdesk_token');
       const isEdit = Boolean(formData._id);
-      const url = isEdit ? `/api/tasks/${formData._id}` : '/api/tasks';
+      const url = isEdit ? getApiUrl(`/api/tasks/${formData._id}`) : getApiUrl('/api/tasks');
       const method = isEdit ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -205,7 +206,7 @@ export default function TasksView({ showToast, onCountsChange }) {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const response = await fetch(`/api/tasks/${deletingTask._id}`, {
+      const response = await fetch(getApiUrl(`/api/tasks/${deletingTask._id}`), {
         method: 'DELETE',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Mail, Lock, User, ArrowRight, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { getApiUrl } from '../config/api';
 
 export default function AuthView({ onAuthSuccess, showToast }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -42,7 +43,7 @@ export default function AuthView({ onAuthSuccess, showToast }) {
     setLoading(true);
     setError(null);
 
-    const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+    const endpoint = getApiUrl(isRegister ? '/api/auth/register' : '/api/auth/login');
     const payload = isRegister 
       ? { name: name.trim(), email: email.trim(), password }
       : { email: email.trim(), password };

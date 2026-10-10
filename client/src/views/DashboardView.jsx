@@ -16,6 +16,7 @@ import {
   Video,
   FileText
 } from 'lucide-react';
+import { getApiUrl } from '../config/api';
 
 export default function DashboardView({ 
   activities,
@@ -36,9 +37,9 @@ export default function DashboardView({
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
       const [custRes, taskRes, followRes] = await Promise.all([
-        fetch('/api/customers?limit=100', { headers }),
-        fetch('/api/tasks?limit=100', { headers }),
-        fetch('/api/follow-ups?limit=100', { headers })
+        fetch(getApiUrl('/api/customers?limit=100'), { headers }),
+        fetch(getApiUrl('/api/tasks?limit=100'), { headers }),
+        fetch(getApiUrl('/api/follow-ups?limit=100'), { headers })
       ]);
 
       if (custRes.ok) {
@@ -72,7 +73,7 @@ export default function DashboardView({
     const nextStatus = currentStatus === 'Completed' ? 'Pending' : 'Completed';
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const res = await fetch(`/api/tasks/${taskId}`, {
+      const res = await fetch(getApiUrl(`/api/tasks/${taskId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

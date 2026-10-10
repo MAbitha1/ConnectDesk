@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { CheckSquare, User, Calendar, Tag, AlertCircle } from 'lucide-react';
+import { getApiUrl } from '../config/api';
 
 export default function TaskFormModal({ 
   isOpen, 
@@ -29,7 +30,7 @@ export default function TaskFormModal({
         setLoadingCustomers(true);
         try {
           const token = localStorage.getItem('connectdesk_token');
-          const res = await fetch('/api/customers?limit=100', {
+          const res = await fetch(getApiUrl('/api/customers?limit=100'), {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
           });
           if (res.ok) {

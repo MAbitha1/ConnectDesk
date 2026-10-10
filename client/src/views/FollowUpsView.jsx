@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import FollowUpFormModal from '../components/FollowUpFormModal';
 import DeleteFollowUpModal from '../components/DeleteFollowUpModal';
+import { getApiUrl } from '../config/api';
 
 export default function FollowUpsView({ showToast, onCountsChange }) {
   const [followUps, setFollowUps] = useState([]);
@@ -52,7 +53,7 @@ export default function FollowUpsView({ showToast, onCountsChange }) {
       params.append('page', page);
       params.append('limit', 20);
 
-      const response = await fetch(`/api/follow-ups?${params.toString()}`, {
+      const response = await fetch(getApiUrl(`/api/follow-ups?${params.toString()}`), {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
 
@@ -88,7 +89,7 @@ export default function FollowUpsView({ showToast, onCountsChange }) {
   const handleSaveFollowUp = async (formData) => {
     const token = localStorage.getItem('connectdesk_token');
     const isEdit = Boolean(formData._id);
-    const endpoint = isEdit ? `/api/follow-ups/${formData._id}` : '/api/follow-ups';
+    const endpoint = isEdit ? getApiUrl(`/api/follow-ups/${formData._id}`) : getApiUrl('/api/follow-ups');
     const method = isEdit ? 'PUT' : 'POST';
 
     const res = await fetch(endpoint, {
@@ -118,7 +119,7 @@ export default function FollowUpsView({ showToast, onCountsChange }) {
       // Optimistic update
       setFollowUps(prev => prev.map(f => f._id === followUp._id ? { ...f, completed: nextState } : f));
 
-      const res = await fetch(`/api/follow-ups/${followUp._id}`, {
+      const res = await fetch(getApiUrl(`/api/follow-ups/${followUp._id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ export default function FollowUpsView({ showToast, onCountsChange }) {
     if (!followUpToDelete) return;
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const res = await fetch(`/api/follow-ups/${followUpToDelete._id}`, {
+      const res = await fetch(getApiUrl(`/api/follow-ups/${followUpToDelete._id}`), {
         method: 'DELETE',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });

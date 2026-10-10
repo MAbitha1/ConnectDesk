@@ -19,8 +19,38 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// CORS Configuration
-app.use(cors());
+// Production & Development CORS Configuration
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((origin) => origin.trim().replace(/\/$/, ''))
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like health checks, server-to-server, curl)
+    if (!origin) return callback(null, true);
+
+    // Allow explicit origin matches or universal wildcard
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Allow Vercel preview/production deployments if vercel.app is configured
+    const isVercelOrigin = allowedOrigins.some(o => o.includes('vercel.app')) && /^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(origin);
+    if (isVercelOrigin) {
+      return callback(null, true);
+    }
+
+    // Allow all origins in non-production environments
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 // Rate limiting for authentication routes to prevent brute-force attacks

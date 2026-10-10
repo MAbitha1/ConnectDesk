@@ -18,6 +18,7 @@ import {
   INITIAL_FOLLOWUPS, 
   INITIAL_ACTIVITIES 
 } from './data/initialData';
+import { getApiUrl } from './config/api';
 
 import './App.css';
 
@@ -45,8 +46,8 @@ export default function App() {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [taskRes, followRes] = await Promise.all([
-        fetch('/api/tasks?limit=100', { headers }),
-        fetch('/api/follow-ups?limit=100', { headers })
+        fetch(getApiUrl('/api/tasks?limit=100'), { headers }),
+        fetch(getApiUrl('/api/follow-ups?limit=100'), { headers })
       ]);
 
       if (taskRes.ok) {
@@ -84,7 +85,7 @@ export default function App() {
       const savedToken = localStorage.getItem('connectdesk_token');
       if (savedToken) {
         try {
-          const response = await fetch('/api/auth/me', {
+          const response = await fetch(getApiUrl('/api/auth/me'), {
             headers: {
               'Authorization': `Bearer ${savedToken}`
             }
@@ -153,7 +154,7 @@ export default function App() {
     setHealthError(null);
     const startTime = performance.now();
     try {
-      const response = await fetch('/api/health');
+      const response = await fetch(getApiUrl('/api/health'));
       const endTime = performance.now();
       setHealthLatency(Math.round(endTime - startTime));
 

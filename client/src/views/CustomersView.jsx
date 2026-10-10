@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import CustomerFormModal from '../components/CustomerFormModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import { getApiUrl } from '../config/api';
 
 export default function CustomersView({ showToast }) {
   // Data & Pagination State
@@ -56,7 +57,7 @@ export default function CustomersView({ showToast }) {
         status: selectedStatus
       });
 
-      const response = await fetch(`/api/customers?${params.toString()}`, {
+      const response = await fetch(getApiUrl(`/api/customers?${params.toString()}`), {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
 
@@ -124,7 +125,7 @@ export default function CustomersView({ showToast }) {
     try {
       const token = localStorage.getItem('connectdesk_token');
       const isEdit = Boolean(formData._id);
-      const url = isEdit ? `/api/customers/${formData._id}` : '/api/customers';
+      const url = isEdit ? getApiUrl(`/api/customers/${formData._id}`) : getApiUrl('/api/customers');
       const method = isEdit ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -166,7 +167,7 @@ export default function CustomersView({ showToast }) {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const response = await fetch(`/api/customers/${deletingCustomer._id}`, {
+      const response = await fetch(getApiUrl(`/api/customers/${deletingCustomer._id}`), {
         method: 'DELETE',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });

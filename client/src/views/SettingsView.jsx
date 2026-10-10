@@ -16,6 +16,7 @@ import {
   Lock,
   Sparkles
 } from 'lucide-react';
+import { getApiUrl } from '../config/api';
 
 export default function SettingsView({ 
   healthData, 
@@ -59,7 +60,7 @@ export default function SettingsView({
 
     try {
       const token = localStorage.getItem('connectdesk_token');
-      const res = await fetch('/api/auth/profile', {
+      const res = await fetch(getApiUrl('/api/auth/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
