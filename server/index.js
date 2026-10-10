@@ -14,6 +14,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Vercel/Render sit behind a proxy; needed so rate limiting sees the real client IP
+app.set('trust proxy', 1);
+
 // Security HTTP Headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
@@ -45,7 +48,10 @@ app.use(cors({
       return callback(null, true);
     }
 
-    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    // Don't throw (that turns into a 500). Just omit CORS headers: same-origin
+    // requests (frontend + API on the same Vercel domain) still work, and the
+    // browser blocks genuine cross-origin callers on its own.
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
