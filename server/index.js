@@ -55,10 +55,12 @@ app.use(express.json());
 
 // Ensure DB connection is established for all incoming requests (Serverless & Server)
 app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-  } catch (error) {
-    console.error('Error connecting to DB in request middleware:', error.message);
+  const connected = await connectDB();
+  if (!connected && req.path.startsWith('/api/') && req.path !== '/api/health') {
+    return res.status(503).json({
+      success: false,
+      error: 'Database connection unavailable. Please verify MONGODB_URI environment variable on Vercel.'
+    });
   }
   next();
 });
