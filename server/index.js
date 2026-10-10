@@ -107,8 +107,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB and start Express server
-app.listen(PORT, async () => {
-  console.log(`[ConnectDesk Server] Running on http://localhost:${PORT}`);
+// Middleware to ensure DB connection on serverless requests
+app.use(async (req, res, next) => {
   await connectDB();
+  next();
 });
+
+// Connect to MongoDB and start Express server if running standalone
+if (!process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    console.log(`[ConnectDesk Server] Running on http://localhost:${PORT}`);
+    await connectDB();
+  });
+}
+
+export default app;
